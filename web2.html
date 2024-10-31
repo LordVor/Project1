@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Tareas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 60px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            resize: none;
+        }
+
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+        .register {
+            margin-top: 20px;
+            text-align: left;
+            background-color: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .entry {
+            padding: 8px; /* Reducir padding para ahorrar espacio */
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center; /* Alinea el checkbox y el texto */
+        }
+
+        .entry:last-child {
+            border-bottom: none;
+        }
+
+        .completed {
+            text-decoration: line-through;
+            color: #888;
+        }
+
+        .delete-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: auto; /* Alinea el botón de eliminar a la derecha */
+        }
+
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .task-content {
+            font-size: 14px; /* Reducir el tamaño de la fuente */
+            margin-left: 10px; /* Espacio entre el checkbox y el texto */
+            white-space: pre-wrap;
+            flex: 1; /* Permite que el texto ocupe el espacio disponible */
+        }
+
+        /* Estilos de prioridad */
+        .alta {
+            border-left: 5px solid red;
+            background-color: #ffebee;
+        }
+
+        .media {
+            border-left: 5px solid orange;
+            background-color: #fff8e1;
+        }
+
+        .baja {
+            border-left: 5px solid green;
+            background-color: #e8f5e9;
+        }
+
+        .priority-options {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #e9ecef; /* Fondo claro para resaltar */
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+.priority-options label {
+    margin: 0 10px;
+    font-weight: bold;
+    color: #333;
+}
+
+        /* Ocultar la fecha y hora visualmente */
+        .timestamp {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Bloc personal</h1>
+        
+        <!-- Opciones de prioridad con botones de radio -->
+        <div class="priority-options">
+            <label><input type="radio" name="priority" value="alta"> Alta</label>
+            <label><input type="radio" name="priority" value="media" checked> Media</label>
+            <label><input type="radio" name="priority" value="baja"> Baja</label>
+        </div>
+
+        <!-- Casilla de selección para ordenar por prioridad -->
+        <div style="margin-top: 10px;">
+            <label><input type="checkbox" id="sortByPriority" onchange="sortTasks()"> Ordenar por Prioridad</label>
+        </div>
+        
+        <textarea id="textInput" maxlength="500" placeholder="Nova entrada"></textarea>
+        <br>
+        <button class="btn" onclick="addTask()">Añadir tarea</button>
+
+        <div id="register" class="register">
+            <h3>Registro de Tareas:</h3>
+            <!-- Aquí se mostrará la lista de tareas -->
+        </div>
+    </div>
+
+    <script>
+        function addTask() {
+            // Obtener el valor del textarea
+            const text = document.getElementById('textInput').value;
+
+            // Si el campo está vacío, no hacer nada
+            if (!text.trim()) {
+                alert("Por favor, escribe una tarea.");
+                return;
+            }
+
+            // Obtener la prioridad seleccionada
+            const priority = document.querySelector('input[name="priority"]:checked').value;
+
+            // Obtener la fecha y la hora actuales
+            const now = new Date();
+            const date = now.toLocaleDateString();
+            const time = now.toLocaleTimeString();
+
+            // Crear un nuevo div para la tarea
+            const newTask = document.createElement('div');
+            newTask.classList.add('entry', priority); // Agrega la clase de prioridad
+
+            // Almacenar la fecha y hora en un atributo personalizado para ordenar
+            newTask.setAttribute('data-timestamp', now.getTime());
+
+            // Checkbox para marcar como completada
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+
+            // Añadir el evento para marcar como completada
+            checkbox.addEventListener('change', function() {
+                if (checkbox.checked) {
+                    newTaskText.classList.add('completed');
+                } else {
+                    newTaskText.classList.remove('completed');
+                }
+            });
+
+            // Crear el contenedor del texto de la tarea
+            const newTaskText = document.createElement('span');
+            newTaskText.classList.add('task-content');
+            newTaskText.textContent = text;
+
+            // Crear el elemento de la fecha y hora (oculto)
+            const timestamp = document.createElement('span');
+            timestamp.classList.add('timestamp');
+            timestamp.textContent = `Añadido el: ${date} a las ${time}`;
+
+            // Crear el botón de eliminar
+            const deleteButton = document.createElement('button');
+            deleteButton.classList.add('delete-btn');
+            deleteButton.textContent = "Eliminar";
+            deleteButton.onclick = function() {
+                newTask.remove();
+            };
+
+            // Agregar el checkbox, el texto, la fecha/hora y el botón a la tarea
+            newTask.appendChild(checkbox);
+            newTask.appendChild(newTaskText);
+            newTask.appendChild(timestamp);
+            newTask.appendChild(deleteButton);
+
+            // Agregar la nueva tarea al div 'register'
+            document.getElementById('register').prepend(newTask); // Añadir la tarea al inicio
+
+            // Limpiar el textarea
+            document.getElementById('textInput').value = '';
+
+            // Ordenar las tareas después de añadir una nueva
+            sortTasks();
+        }
+
+        function sortTasks() {
+            const register = document.getElementById('register');
+            const tasks = Array.from(register.getElementsByClassName('entry'));
+            const sortByPriority = document.getElementById('sortByPriority').checked;
+
+            if (sortByPriority) {
+                // Ordenar las tareas por prioridad: alta, media, baja
+                tasks.sort((a, b) => {
+                    const priorities = { alta: 1, media: 2, baja: 3 };
+                    return priorities[a.classList.contains('alta') ? 'alta' : a.classList.contains('media') ? 'media' : 'baja'] - 
+                           priorities[b.classList.contains('alta') ? 'alta' : b.classList.contains('media') ? 'media' : 'baja'];
+                });
+            } else {
+                // Ordenar las tareas por fecha y hora (más recientes primero)
+                tasks.sort((a, b) => b.getAttribute('data-timestamp') - a.getAttribute('data-timestamp'));
+            }
+
+            // Limpiar el contenedor de tareas y agregar las tareas ordenadas
+            register.innerHTML = '<h3>Registro de Tareas:</h3>';
+            tasks.forEach(task => register.appendChild(task));
+        }
+    </script>
+
+</body>
+</html>
+
+
+
+
+
