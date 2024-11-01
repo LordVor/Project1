@@ -12,7 +12,6 @@
             padding: 20px;
             text-align: center;
         }
-
         .container {
             max-width: 600px;
             margin: 0 auto;
@@ -21,17 +20,16 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
         }
-
         textarea {
-            width: 100%;
+            width: calc(100% - 20px); /* Añadir margen lateral */
             height: 60px;
             padding: 10px;
             font-size: 16px;
             border-radius: 5px;
             border: 1px solid #ccc;
             resize: none;
+            margin: 10px 0; /* Añadir margen vertical */
         }
-
         .btn {
             background-color: #4CAF50;
             color: white;
@@ -41,11 +39,9 @@
             cursor: pointer;
             margin-top: 10px;
         }
-
         .btn:hover {
             background-color: #45a049;
         }
-
         .register {
             margin-top: 20px;
             text-align: left;
@@ -54,23 +50,19 @@
             border: 1px solid #ccc;
             border-radius: 5px;
         }
-
         .entry {
-            padding: 8px; /* Reducir padding para ahorrar espacio */
+            padding: 8px;
             border-bottom: 1px solid #ddd;
             display: flex;
-            align-items: center; /* Alinea el checkbox y el texto */
+            align-items: center;
         }
-
         .entry:last-child {
             border-bottom: none;
         }
-
         .completed {
             text-decoration: line-through;
             color: #888;
         }
-
         .delete-btn {
             background-color: #e74c3c;
             color: white;
@@ -79,52 +71,43 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 12px;
-            margin-left: auto; /* Alinea el botón de eliminar a la derecha */
+            margin-left: auto;
         }
-
         .delete-btn:hover {
             background-color: #c0392b;
         }
-
         .task-content {
-            font-size: 14px; /* Reducir el tamaño de la fuente */
-            margin-left: 10px; /* Espacio entre el checkbox y el texto */
+            font-size: 14px;
+            margin-left: 10px;
             white-space: pre-wrap;
-            flex: 1; /* Permite que el texto ocupe el espacio disponible */
+            flex: 1;
         }
-
-        /* Estilos de prioridad */
         .alta {
             border-left: 5px solid red;
             background-color: #ffebee;
         }
-
         .media {
             border-left: 5px solid orange;
             background-color: #fff8e1;
         }
-
         .baja {
             border-left: 5px solid green;
             background-color: #e8f5e9;
         }
-
         .priority-options {
-    display: flex;
-    justify-content: center;
-    margin-top: 10px;
-    padding: 10px;
-    background-color: #e9ecef; /* Fondo claro para resaltar */
-    border-radius: 8px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-}
-.priority-options label {
-    margin: 0 10px;
-    font-weight: bold;
-    color: #333;
-}
-
-        /* Ocultar la fecha y hora visualmente */
+            display: flex;
+            justify-content: center;
+            margin: 10px 0; /* Espaciado uniforme para ambas secciones */
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .priority-options label {
+            margin: 0 10px;
+            font-weight: bold;
+            color: #333;
+        }
         .timestamp {
             display: none;
         }
@@ -135,122 +118,126 @@
     <div class="container">
         <h1>Bloc personal</h1>
         
-        <!-- Opciones de prioridad con botones de radio -->
         <div class="priority-options">
             <label><input type="radio" name="priority" value="alta"> Alta</label>
-            <label><input type="radio" name="priority" value="media" checked> Media</label>
-            <label><input type="radio" name="priority" value="baja"> Baja</label>
+            <label><input type="radio" name="priority" value="media" checked> Mitja</label>
+            <label><input type="radio" name="priority" value="baja"> Baixa</label>
         </div>
 
-        <!-- Casilla de selección para ordenar por prioridad -->
-        <div style="margin-top: 10px;">
-            <label><input type="checkbox" id="sortByPriority" onchange="sortTasks()"> Ordenar por Prioridad</label>
+        <div class="priority-options">
+            <label><input type="radio" name="sortOption" value="prioridad" onclick="sortTasks()"> Prioritat</label>
+            <label><input type="radio" name="sortOption" value="fecha" onclick="sortTasks()" checked> Data</label>
         </div>
         
         <textarea id="textInput" maxlength="500" placeholder="Nova entrada"></textarea>
         <br>
-        <button class="btn" onclick="addTask()">Añadir tarea</button>
+        <button class="btn" onclick="addTask()">Nova entrada</button>
 
         <div id="register" class="register">
-            <h3>Registro de Tareas:</h3>
-            <!-- Aquí se mostrará la lista de tareas -->
+            <h3>Registre d'entrades:</h3>
         </div>
     </div>
 
     <script>
-        function addTask() {
-            // Obtener el valor del textarea
-            const text = document.getElementById('textInput').value;
+        function saveTasks() {
+            const tasks = [];
+            document.querySelectorAll('.entry').forEach(entry => {
+                tasks.push({
+                    text: entry.querySelector('.task-content').textContent,
+                    completed: entry.querySelector('input[type="checkbox"]').checked,
+                    priority: entry.classList.contains('alta') ? 'alta' :
+                              entry.classList.contains('media') ? 'media' : 'baja',
+                    timestamp: entry.getAttribute('data-timestamp') // Guardamos el timestamp
+                });
+            });
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
 
-            // Si el campo está vacío, no hacer nada
+        function loadTasks() {
+            const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+            tasks
+                .sort((a, b) => b.timestamp - a.timestamp) // Ordena por fecha de creación (más recientes primero)
+                .forEach(task => {
+                    document.getElementById('textInput').value = task.text;
+                    document.querySelector(`input[value="${task.priority}"]`).checked = true;
+                    addTask();
+                    const lastTask = document.querySelector('.entry');
+                    lastTask.querySelector('input[type="checkbox"]').checked = task.completed;
+                    lastTask.setAttribute('data-timestamp', task.timestamp); // Reestablecemos el timestamp
+                    if (task.completed) {
+                        lastTask.querySelector('.task-content').classList.add('completed');
+                    }
+                });
+        }
+
+        function addTask() {
+            const text = document.getElementById('textInput').value;
             if (!text.trim()) {
                 alert("Por favor, escribe una tarea.");
                 return;
             }
-
-            // Obtener la prioridad seleccionada
             const priority = document.querySelector('input[name="priority"]:checked').value;
-
-            // Obtener la fecha y la hora actuales
             const now = new Date();
-            const date = now.toLocaleDateString();
-            const time = now.toLocaleTimeString();
-
-            // Crear un nuevo div para la tarea
             const newTask = document.createElement('div');
-            newTask.classList.add('entry', priority); // Agrega la clase de prioridad
+            newTask.classList.add('entry', priority);
 
-            // Almacenar la fecha y hora en un atributo personalizado para ordenar
+            // Agrega la marca de tiempo como atributo personalizado
             newTask.setAttribute('data-timestamp', now.getTime());
 
-            // Checkbox para marcar como completada
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
-
-            // Añadir el evento para marcar como completada
             checkbox.addEventListener('change', function() {
                 if (checkbox.checked) {
                     newTaskText.classList.add('completed');
                 } else {
                     newTaskText.classList.remove('completed');
                 }
+                saveTasks();
             });
 
-            // Crear el contenedor del texto de la tarea
             const newTaskText = document.createElement('span');
             newTaskText.classList.add('task-content');
             newTaskText.textContent = text;
 
-            // Crear el elemento de la fecha y hora (oculto)
-            const timestamp = document.createElement('span');
-            timestamp.classList.add('timestamp');
-            timestamp.textContent = `Añadido el: ${date} a las ${time}`;
-
-            // Crear el botón de eliminar
             const deleteButton = document.createElement('button');
             deleteButton.classList.add('delete-btn');
             deleteButton.textContent = "Eliminar";
             deleteButton.onclick = function() {
                 newTask.remove();
+                saveTasks();
             };
 
-            // Agregar el checkbox, el texto, la fecha/hora y el botón a la tarea
             newTask.appendChild(checkbox);
             newTask.appendChild(newTaskText);
-            newTask.appendChild(timestamp);
             newTask.appendChild(deleteButton);
 
-            // Agregar la nueva tarea al div 'register'
-            document.getElementById('register').prepend(newTask); // Añadir la tarea al inicio
-
-            // Limpiar el textarea
+            document.getElementById('register').prepend(newTask);
             document.getElementById('textInput').value = '';
 
-            // Ordenar las tareas después de añadir una nueva
+            saveTasks();
             sortTasks();
         }
 
         function sortTasks() {
             const register = document.getElementById('register');
             const tasks = Array.from(register.getElementsByClassName('entry'));
-            const sortByPriority = document.getElementById('sortByPriority').checked;
+            const sortByPriority = document.querySelector('input[name="sortOption"]:checked').value === "prioridad";
 
             if (sortByPriority) {
-                // Ordenar las tareas por prioridad: alta, media, baja
                 tasks.sort((a, b) => {
                     const priorities = { alta: 1, media: 2, baja: 3 };
                     return priorities[a.classList.contains('alta') ? 'alta' : a.classList.contains('media') ? 'media' : 'baja'] - 
                            priorities[b.classList.contains('alta') ? 'alta' : b.classList.contains('media') ? 'media' : 'baja'];
                 });
             } else {
-                // Ordenar las tareas por fecha y hora (más recientes primero)
                 tasks.sort((a, b) => b.getAttribute('data-timestamp') - a.getAttribute('data-timestamp'));
             }
 
-            // Limpiar el contenedor de tareas y agregar las tareas ordenadas
             register.innerHTML = '<h3>Registro de Tareas:</h3>';
             tasks.forEach(task => register.appendChild(task));
         }
+
+        window.onload = loadTasks;
     </script>
 
 </body>
